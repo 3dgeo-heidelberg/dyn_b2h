@@ -5,12 +5,12 @@ from bpy_extras.io_utils import ImportHelper, ExportHelper
 class ExportProps(bpy.types.PropertyGroup, ExportHelper):
     
     helios_root: bpy.props.StringProperty(name="Path to HELIOS++ root_folder", default="helios", subtype="DIR_PATH")
-    sceneparts_folder: bpy.props.StringProperty(name="Name of sceneparts folder", default="tree1")
+    sceneparts_folder: bpy.props.StringProperty(name="Name of sceneparts folder", default="")
     loop_animations: bpy.props.BoolProperty(name="Loop animations?", default=False)
     export_static: bpy.props.BoolProperty(name="Also export static scene?", default=True)
     export_sceneparts: bpy.props.BoolProperty(name="Export scene parts?", default=True)
-    scene_id: bpy.props.StringProperty(name="ID of the scene", default="moving_tree1")
-    scene_name: bpy.props.StringProperty(name="Name of the scene", default="Tree with moving leaves")
+    scene_id: bpy.props.StringProperty(name="ID of the scene", default="dyn_scene")
+    scene_name: bpy.props.StringProperty(name="Name of the scene", default="Dynamic scene")
 
 class SCENE_PT_helios(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
