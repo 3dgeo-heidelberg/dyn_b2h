@@ -25,7 +25,7 @@ Blender Add-on for exporting dynamic/animated scenes from Blender to HELIOS++
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-This Blender Add-on allows exporting an animated Blender scene to a HELIOS++ scene. It involves exporting the scene parts (OBJ files) and writing a scene file with sequences of rigid motions for the dynamic objects. As of now, it supports simple motions composed of translations and rotations.
+This Blender add-on allows exporting an animated Blender scene to a HELIOS++ scene. It involves exporting the scene parts (OBJ files) and writing a scene file with sequences of rigid motions for the dynamic objects. As of now, it supports simple motions composed of translations and rotations.
 
 <!-- GETTING STARTED -->
 ## Getting Started
