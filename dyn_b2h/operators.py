@@ -69,7 +69,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
             pass
         # check if moving object (i.e., rotations are different between keyframes)
         if len(set(rotations)) or len(set(locations)) > 1:
-            sceneparts += "\n\t\t<!--Dynamic scenepart-->"
+            sceneparts += "\n        <!--Dynamic scenepart-->"
             dynm_string = ""
             leaf_id = str(obj_paths_relative[i]).split("\\")[-1].replace(".obj", "")
             path = str(obj_paths_relative[i])
@@ -136,7 +136,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
             obj_paths_static.append(obj_paths_relative[i])
     
     # iterate through static obj paths and create scenepart string
-    sceneparts += "\n\t\t<!--Static sceneparts-->"
+    sceneparts += "\n        <!--Static sceneparts-->"
     for path in obj_paths_static:
         sp_string = sw.create_scenepart_obj(path)
         sceneparts += sp_string
