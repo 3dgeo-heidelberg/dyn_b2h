@@ -74,6 +74,27 @@ def add_motion_rotation(id: str,
                         selfmode_flag: bool = False,
                         next: str = False,
                         decimal_places: int = 8):
+    """This function adds a rigid motion H++ XML string composed of a rotation
+    :param id: id of the motion
+    :param axis: axis of rotation
+    :param angle: angle of rotation
+    :param rotation_center: point around which to rotate
+    :param nloops: number of times the motion should be repeated (0 = repeat endlessly)
+    :param selfmode_flag: 
+    :param next: id of the next motion (for building sequences of motions)
+    :param decimal_places: decimal places to round coordinates/distances/angles to
+    :type id: str
+    :type axis: Iterable[float]
+    :type angle: float
+    :type rotation_center: Iterable[float]
+    :type nloops: int
+    :type selfmode_flag: bool
+    :type next: str
+    :type decimal_places: int
+    
+    :return: rigid motion filter
+    :rtype: str
+    """
     axis_string = f'{axis[0]:.3f};{axis[1]:.3f};{axis[2]:.3f}'
     if next:
         next_str = f'next="{next}"'
@@ -103,6 +124,25 @@ def add_motion_translation(id: str,
                            nloops: int = 0,
                            next: str = False,
                            decimal_places: int = 8):
+    """This function returns a rigid motion H++ XML string composed of a translation
+    :param id: id of the motion
+    :param x: translation in x-direction
+    :param y: translation in y-direction
+    :param z: translation in z-direction
+    :param nloops: number of times the motion should be repeated (0 = repeat endlessly)
+    :param next: id of the next motion (for building sequences of motions)
+    :param decimal_places: decimal places to round coordinates/distances/angles to
+    :type id: str
+    :type x: float
+    :type y: float
+    :type z: float
+    :type nloops: int
+    :type next: str
+    :type decimal_places: int
+    
+    :return: rigid motion filter
+    :rtype: str
+    """
     if next:
         next_str = f'next="{next}"'
     else:
@@ -124,6 +164,33 @@ def add_motion_rot_tran(id: str,
                         selfmode_flag: bool = False,
                         next: str = False,
                         decimal_places: int = 8):
+    """This function adds a rigid motion H++ XML string composed of a translation and a rotation
+    :param id: id of the motion
+    :param axis: axis of rotation
+    :param angle: angle of rotation
+    :param x: translation in x-direction
+    :param y: translation in y-direction
+    :param z: translation in z-direction
+    :param rotation_center: point around which to rotate
+    :param nloops: number of times the motion should be repeated (0 = repeat endlessly)
+    :param selfmode_flag: 
+    :param next: id of the next motion (for building sequences of motions)
+    :param decimal_places: decimal places to round coordinates/distances/angles to
+    :type id: str
+    :type axis: Iterable[float]
+    :type angle: float
+    :type x: float
+    :type y: float
+    :type z: float
+    :type rotation_center: Iterable[float]
+    :type nloops: int
+    :type selfmode_flag: bool
+    :type next: str
+    :type decimal_places: int
+    
+    :return: rigid motion filter
+    :rtype: str
+    """
     axis_string = f'{axis[0]:.3f};{axis[1]:.3f};{axis[2]:.3f}'
     vec_string = f'{x:.{decimal_places}f};{y:.{decimal_places}f};{z:.{decimal_places}f}'
     if next:
@@ -149,13 +216,15 @@ def add_motion_rot_tran(id: str,
 
 def create_scenepart_obj(filepath: str, up_axis: str = "z", trafofilter: str = "",
                          efilepath: bool = False, sp_id: str = None,
-                         motionfilter: str = "", dyn_step: int = None, kdt_dyn_step: int = None):
+                         motionfilter: str = "",
+                         dyn_step: int = None, kdt_dyn_step: int = None,
+                         dyn_time_step: float = None, kdt_dyn_time_step: float = None):
     """This function creates a scenepart string to load OBJ-files
 
     :param filepath: path to the OBJ-file
     :param up_axis: axis of the OBJ-file which is pointing upwards
     :param trafofilter: transformation filter, surrounded by <filter>-tags
-    :param motionilter:
+    :param motionfilter:
     :param efilepath: boolean, whether to use the efilepath option
     :param sp_id:
     :param dyn_step: dynamic motions will be applied every dyn_step simulation steps
@@ -168,6 +237,9 @@ def create_scenepart_obj(filepath: str, up_axis: str = "z", trafofilter: str = "
     :type sp_id: str
     :type dyn_step: int
     :type kdt_dyn_step: int
+    :type dyn_step: float
+    :type kdt_dyn_step: float
+    
     :return: scenepart
     :rtype: str
     """
@@ -177,19 +249,32 @@ def create_scenepart_obj(filepath: str, up_axis: str = "z", trafofilter: str = "
         id_string = f'id="{sp_id}"'
     else:
         id_string = ""
-    if motionfilter != "" and kdt_dyn_step is not None:
-        if dyn_step is None:
-            dyn_step_string = ""
-        else:
+    if motionfilter != "":
+        if dyn_time_step and kdt_dyn_time_step:
+            if kdt_dyn_time_step < dyn_time_step:
+                warnings.warn("kdtDynTimeStep must be equal to or greater then kdtDynStep. Ignoring kdtDynTimeStep.")
+                kdt_dyn_time_step = None
+        if dyn_step and dyn_time_step:
+            warnings.warn("Both dynStep and dynTimeStep were provided, but they are exclusive. Using dynStep.")
+        if kdt_dyn_step and kdt_dyn_time_step:
+            warnings.warn("Both kdtDynStep and kdtDynTimeStep were provided, but they are exclusive. Using kdtDynStep.")
+        if dyn_step:
             dyn_step_string = f'dynStep="{dyn_step}"'
-        dyn_step_string += f'kdtDynStep="{kdt_dyn_step}"'
-    elif motionfilter != "":
-        warnings.warn("The scenepart has rigid motions. Please specify a kdtDynStep")
-        dyn_step_string = ""
+        elif dyn_time_step:
+            dyn_step_string = f'dynTimeStep="{dyn_time_step}"'
+        else:
+            dyn_step_string = ""
+        if kdt_dyn_step:
+            kdt_dyn_step_string = f'kdtDynStep="{kdt_dyn_step}"'
+        elif kdt_dyn_time_step:
+            kdt_dyn_step_string = f'kdtDynTimeStep="{kdt_dyn_time_step}"'
+        else:
+            kdt_dyn_step_string = ""
     else:
         dyn_step_string = ""
+        kdt_dyn_step_string = ""
     scenepart = f"""
-        <part {id_string} {dyn_step_string}>
+        <part {id_string} {dyn_step_string} {kdt_dyn_step_string}>
             <filter type="objloader">
                 <param type="string" key="{filepath_mode}" value="{filepath}" />
                 <param type="string" key="up" value="{up_axis}" />
@@ -212,6 +297,7 @@ def create_scenepart_tiff(filepath: str, trafofilter: str = "",
     :type trafofilter: str
     :type matfile: str
     :param matname: name of the material to use
+    
     :return: scenepart
     :rtype: str
     """
@@ -242,6 +328,7 @@ def create_scenepart_xyz(filepath: str, trafofilter: str = "", sep: str = " ", v
     :type sep: str
     :type voxel_size: float
     :type efilepath: bool
+    
     :return: scenepart
     :rtype: str
     """
@@ -304,7 +391,7 @@ def create_scenepart_vox(filepath, trafofilter="", intersection_mode="transmitti
     return scenepart
 
 
-def build_scene(scene_id, name, sceneparts=None, dyn_step=None, dyn_time_step=None):
+def build_scene(scene_id: str, name: str, sceneparts=None, dyn_step: int = None, kdt_dyn_step: int = None, dyn_time_step: float = None, kdt_dyn_time_step: float = None):
     """This function creates the content to write to the scene.xml file
 
     :param scene_id: ID of the scene
@@ -315,21 +402,38 @@ def build_scene(scene_id, name, sceneparts=None, dyn_step=None, dyn_time_step=No
     :type name: str
     :type sceneparts: list[*str]
     :type dyn_step: int
+    :type kdt_dyn_step: int
+    :type dyn_time_step: float
+    :type kdt_dyn_time_step: float
 
     :return: scene XML content
     :return: scene XML content (string)
     :rtype: str
     """
     sceneparts = "\n".join(sceneparts)
+    if dyn_time_step and kdt_dyn_time_step:
+        if kdt_dyn_time_step < dyn_time_step:
+            warnings.warn("kdtDynTimeStep must be equal to or greater then kdtDynStep. Ignoring kdtDynTimeStep.")
+            kdt_dyn_time_step = None
+    if dyn_step and dyn_time_step:
+        warnings.warn("Both dynStep and dynTimeStep were provided, but they are exclusive. Using dynStep.")
+    if kdt_dyn_step and kdt_dyn_time_step:
+        warnings.warn("Both kdtDynStep and kdtDynTimeStep were provided, but they are exclusive. Using kdtDynStep.")
     if dyn_step:
         dyn_step_string = f'dynStep="{dyn_step}"'
     elif dyn_time_step:
         dyn_step_string = f'dynTimeStep="{dyn_time_step}"'
     else:
         dyn_step_string = ""
+    if kdt_dyn_step:
+        kdt_dyn_step_string = f'kdtDynStep="{kdt_dyn_step}"'
+    elif kdt_dyn_time_step:
+        kdt_dyn_step_string = f'kdtDynTimeStep="{kdt_dyn_time_step}"'
+    else:
+        kdt_dyn_step_string = ""
     scene_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <document>
-    <scene id="{scene_id}" name="{name}" {dyn_step_string}>
+    <scene id="{scene_id}" name="{name}" {dyn_step_string} {kdt_dyn_step_string}>
         {sceneparts}
     </scene>
 </document>"""

@@ -7,7 +7,7 @@ import math
 from mathutils import Quaternion, Matrix, Euler, Vector
 from pathlib import Path
 from bpy_extras.io_utils import ImportHelper, ExportHelper
-from movingtree2helios import scene_writer as sw
+from dyn_b2h import scene_writer as sw
 
 
 def export_obj(self, context):
@@ -128,7 +128,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
                 # add to dynamic motion string
                 dynm_string += sw.add_motion_rot_tran(id = f"{leaf_id}_{j}", axis=axis, angle=angle, x=new_t[0], y=new_t[1], z=new_t[2], rotation_center=rot_centre, nloops=1, next=next)
                 j+= 1
-            sp_string = sw.create_scenepart_obj(path, motionfilter=dynm_string, kdt_dyn_step=10/24)
+            sp_string = sw.create_scenepart_obj(path, motionfilter=dynm_string)
             sceneparts += sp_string     
                     
         else:
