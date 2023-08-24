@@ -40,8 +40,8 @@ The Blender add-on is contained in the folder `dyn_b2h`.
 
 ### Installation
 
-The [dyn_b2h](https://github.com/3dgeo-heidelberg/dyn_b2h/tree/main/dyn_b2h) add-on contains several modules. Prior to installing it, zip the folder *dyn_b2h*. In Blender, go to Edit -> Preferences... -> Add-ons. Here, click on "Install..." and navigate to the zip folder *dyn_b2h.zip* using the file browser. The installed add-on now appears in the menu. Activate the add-on by clicking on the checkmark. If you now go to the "Scene Properties" ![image](https://github.com/3dgeo-heidelberg/dyn_b2h/assets/41050948/8835af09-92c2-47f6-b518-307d95c17ac6)
-tag in the "Properties" Window ![image](https://github.com/3dgeo-heidelberg/dyn_b2h/assets/41050948/4aa3d38f-3bc7-4166-9f60-8166aae3b2d3), you should see a new menu "HELIOS".
+The [dyn_b2h](https://github.com/3dgeo-heidelberg/dyn_b2h/tree/main/dyn_b2h) add-on contains several modules. Prior to installing it, zip the folder *dyn_b2h*. In Blender, go to Edit -> Preferences... -> Add-ons. Here, click on "Install..." and navigate to the zip folder *dyn_b2h.zip* using the file browser. The installed add-on now appears in the menu. Activate the add-on by clicking on the checkmark. If you now go to the "Scene Properties" ![scene properties](img/scene_properties.png)
+tab in the "Properties" Window ![properties](img/properties.png), you should see a new menu "HELIOS".
 
 <!-- USAGE EXAMPLES -->
 ## Usage
@@ -51,7 +51,7 @@ Create any scene in Blender, which you want to run a simulation on. The scene ca
 
 Now you are ready for exporting the scene. Go to the HELIOS menu in the "Scene Properties", which looks like this:
 
-![image](https://github.com/3dgeo-heidelberg/dyn_b2h/assets/41050948/f5ddb05c-9db0-46e0-8b51-fb1171772145)
+![menu](img/menu.png)
 
 Select your HELIOS++ root folder and the name of your sceneparts subfolder. This name will automatically be appended to `<your-helios-root_dir>/data/sceneparts`. The add-on will export the meshes in your Blender scene to this folder in OBJ format. Furthermore, browse for the XML file to which the dynamic scene shall be written.
 
