@@ -68,7 +68,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
             # ignore attribute error - happens on objects without animation data, e.g., the tree stem
             pass
         # check if moving object (i.e., rotations are different between keyframes)
-        if len(set(rotations)) or len(set(locations)) > 1:
+        if len(set(rotations)) > 1 or len(set(locations)) > 1:
             sceneparts += "\n        <!--Dynamic scenepart-->"
             dynm_string = ""
             leaf_id = str(obj_paths_relative[i]).split("\\")[-1].replace(".obj", "")
@@ -88,7 +88,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
                     j += 1
                     continue
                 
-                rot_centre = loc
+                rot_centre = prev_loc
                 
                 # get rotation between actual and previous
                 # current rotation to Quaternion
@@ -104,23 +104,13 @@ def write_dyn_scene(self, context, obj_paths_relative):
                 
                 new_t = loc - prev_loc
                 
-                # determine whether to continue with next dmotion or with first one (i.e., restart loop)
-                if j+1 == len(frames):
-                    # only write the next motion if the animation shall be displayed in a loop
-                    if self.loop_animations:
-                        next_id = 1
-                        prev_frame = 0
-                        new_t = initial_loc - loc
-                        new_rot = q_rot @ initial_rot.inverted()
-                    else:    
-                        break    
-                else:
-                    next_id = j+1
-                    if next_id+1 == len(frames) and self.loop_animations is False:
-                        next_id = False
-                    prev_frame = frame
-                    prev_rot = rot.to_quaternion()
-                    prev_loc = loc
+                next_id = j+1
+                # do not add next ID if we are at the last frame (and do not want to loop)
+                if next_id+1 == len(frames) and self.loop_animations is False:
+                    next_id = False
+                prev_frame = frame
+                prev_rot = rot.to_quaternion()
+                prev_loc = loc
                 if next_id:
                     next = f"{leaf_id}_{next_id}"
                 else:
@@ -128,6 +118,19 @@ def write_dyn_scene(self, context, obj_paths_relative):
                 # add to dynamic motion string
                 dynm_string += sw.add_motion_rot_tran(id = f"{leaf_id}_{j}", axis=axis, angle=angle, x=new_t[0], y=new_t[1], z=new_t[2], rotation_center=rot_centre, nloops=1, next=next)
                 j+= 1
+                # Did we arrive at the end of the animation?
+                if j == len(frames):
+                    # determine whether to stop here or continue with first one (i.e., restart loop)
+                    if self.loop_animations:
+                        next_id = 0
+                        next = f"{leaf_id}_{next_id}"
+                        new_t = initial_loc - loc
+                        new_rot = initial_rot @ q_rot.inverted()
+                        rot_centre = prev_loc
+                        axis, angle = new_rot.to_axis_angle()
+                        axis = axis[:]
+                        angle = np.rad2deg(angle)
+                        dynm_string += sw.add_motion_rot_tran(id = f"{leaf_id}_{j}", axis=axis, angle=angle, x=new_t[0], y=new_t[1], z=new_t[2], rotation_center=rot_centre, nloops=1, next=next)
             sp_string = sw.create_scenepart_obj(path, motionfilter=dynm_string)
             sceneparts += sp_string     
                     
