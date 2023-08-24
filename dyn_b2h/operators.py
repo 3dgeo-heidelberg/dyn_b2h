@@ -122,7 +122,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
                 if j == len(frames):
                     # determine whether to stop here or continue with first one (i.e., restart loop)
                     if self.loop_animations:
-                        next_id = 0
+                        next_id = 1
                         next = f"{leaf_id}_{next_id}"
                         new_t = initial_loc - loc
                         new_rot = initial_rot @ q_rot.inverted()
