@@ -69,6 +69,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
             pass
         # check if moving object (i.e., rotations are different between keyframes)
         if len(set(rotations)) > 1 or len(set(locations)) > 1:
+            obj_paths_dynamic.append(obj_paths_relative[i])
             sceneparts += "\n        <!--Dynamic scenepart-->"
             dynm_string = ""
             leaf_id = str(obj_paths_relative[i]).split("\\")[-1].replace(".obj", "")
@@ -150,14 +151,17 @@ def write_dyn_scene(self, context, obj_paths_relative):
     # write scene to file
     with open(self.filepath, "w") as f:
         f.write(scene)
+        
+    return obj_paths_dynamic, obj_paths_static
 
 
-def write_static_scene(self, context, obj_paths_relative):
+def write_static_scene(self, context, obj_paths_dyn, obj_paths_static):
     
     sceneparts = ""
     
     # iterate through static obj paths and create scenepart string
-    for path in obj_paths_relative:
+    obj_paths = obj_paths_dyn + obj_paths_static
+    for path in obj_paths:
         sp_string = sw.create_scenepart_obj(path)
         sceneparts += sp_string
     
@@ -200,11 +204,11 @@ class OT_BatchExport_DynHelios(bpy.types.Operator):
         relative_fpaths = export_obj(export, context)
         
         # write the scene XML (incl. motions)
-        write_dyn_scene(export, context, relative_fpaths)
+        fpaths_dyn, fpaths_static = write_dyn_scene(export, context, relative_fpaths)
         
         # write the static scene XML (if filepath is provided)
         if export.export_static is True:
-            write_static_scene(export, context, relative_fpaths)
+            write_static_scene(export, context, fpaths_dyn, fpaths_static)
         
         return {'FINISHED'}
 
