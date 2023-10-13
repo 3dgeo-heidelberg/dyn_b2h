@@ -2,7 +2,7 @@ import bpy
 from bpy_extras.io_utils import ImportHelper, ExportHelper
 
 
-class ExportProps(bpy.types.PropertyGroup, ExportHelper):
+class ExportProps_dyn(bpy.types.PropertyGroup, ExportHelper):
     
     helios_root: bpy.props.StringProperty(name="Path to HELIOS++ root_folder", default="helios", subtype="DIR_PATH")
     sceneparts_folder: bpy.props.StringProperty(name="Name of sceneparts folder", default="")
@@ -12,16 +12,16 @@ class ExportProps(bpy.types.PropertyGroup, ExportHelper):
     scene_id: bpy.props.StringProperty(name="ID of the scene", default="dyn_scene")
     scene_name: bpy.props.StringProperty(name="Name of the scene", default="Dynamic scene")
 
-class SCENE_PT_helios(bpy.types.Panel):
+class SCENE_PT_helios_dyn(bpy.types.Panel):
     """Creates a Panel in the scene context of the properties editor"""
-    bl_idname = 'SCENE_PT_helios'
-    bl_label = 'HELIOS'
+    bl_idname = 'SCENE_PT_helios_dyn'
+    bl_label = 'HELIOS DYNAMIC'
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "scene"
 
     def draw(self, context):
-        props = bpy.context.scene.ExportProps
+        props = bpy.context.scene.ExportProps_dyn
         layout = self.layout
         
         # Create three rows for the input
@@ -56,7 +56,7 @@ class SCENE_PT_helios(bpy.types.Panel):
         col.prop(props, "scene_name", text="")
 
         row = layout.row()
-        row.operator("helios.export", text="Export")
+        row.operator("helios.export_dyn", text="Export")
 
 def export_button(self, context):
     self.layout.operator(
@@ -67,17 +67,17 @@ def export_button(self, context):
 
  # Registration
 def register():
-    bpy.utils.register_class(SCENE_PT_helios)
-    bpy.utils.register_class(ExportProps)
+    bpy.utils.register_class(SCENE_PT_helios_dyn)
+    bpy.utils.register_class(ExportProps_dyn)
     # register ExportProps
-    bpy.types.Scene.ExportProps = bpy.props.PointerProperty(type=ExportProps)
+    bpy.types.Scene.ExportProps_dyn = bpy.props.PointerProperty(type=ExportProps_dyn)
 
 
 def unregister():
-    bpy.utils.unregister_class(ExportProps)
-    bpy.utils.unregister_class(SCENE_PT_helios)
+    bpy.utils.unregister_class(ExportProps_dyn)
+    bpy.utils.unregister_class(SCENE_PT_helios_dyn)
     # $ delete ExportProps on unregister
-    del(bpy.types.Scene.ExportProps)
+    del(bpy.types.Scene.ExportProps_dyn)
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ import math
 from mathutils import Quaternion, Matrix, Euler, Vector
 from pathlib import Path
 from bpy_extras.io_utils import ImportHelper, ExportHelper
-from dyn_b2h import scene_writer as sw
+from multi_epoch_b2h import scene_writer as sw
 import shutil
 
 
@@ -42,18 +42,20 @@ def export_obj(self, context, frame):
             outfile = str(sceneparts_path / (ob.name + f'_{frame:03d}.obj'))
             
             filepaths_relative.append(Path(outfile).relative_to(self.helios_root))
-            if self.export_sceneparts is True:
-                bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y', use_materials=False)
-                # add material library
-                mtllib = 'tree.mtl'
-                if 'tree' in ob.name:
-                    mtl = 'wood'
-                elif 'leaves' in ob.name:
-                    mtl = 'leaves'
-                else:
-                    break
-                # add material reference to written OBJ
-                add_material(outfile, mtllib, mtl)
+            # condition is uncommented, because we expect that people usually want to export sceneparts
+            # if self.export_sceneparts is True:
+            bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y', use_materials=False)
+            # add material library
+            # custom condition for trees, remove eventually
+            mtllib = 'tree.mtl'
+            if 'tree' in ob.name:
+                mtl = 'wood'
+            elif 'leaves' in ob.name:
+                mtl = 'leaves'
+            else:
+                break
+            # add material reference to written OBJ
+            add_material(outfile, mtllib, mtl)
                     
 
         ob.select_set(False)
@@ -82,15 +84,15 @@ def write_static_scene(self, context, obj_paths_relative, frame):
         f.write(scene)
 
 
-class OT_BatchExport_DynHelios(bpy.types.Operator):
+class OT_BatchExport_MultiEpochHelios(bpy.types.Operator):
     """HELIOS - Export moving scene to HELIOS"""
-    bl_idname = "helios.export"
-    bl_label = "Export OBJ dynamic"
+    bl_idname = "helios.export_multi_epoch"
+    bl_label = "Export OBJ multi epoch"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         scene = context.scene
-        export = scene.ExportProps
+        export = scene.ExportProps_me
         
         for frame in range(scene.frame_start, scene.frame_end + export.frame_step, export.frame_step):
             # export objects (to OBJ files) 
@@ -101,7 +103,7 @@ class OT_BatchExport_DynHelios(bpy.types.Operator):
             
         return {'FINISHED'}
 
-classes = (OT_BatchExport_DynHelios,)
+classes = (OT_BatchExport_MultiEpochHelios,)
 
 register, unregister = bpy.utils.register_classes_factory(classes)
 

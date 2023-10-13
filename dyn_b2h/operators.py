@@ -144,8 +144,11 @@ def write_dyn_scene(self, context, obj_paths_relative):
     for path in obj_paths_static:
         sp_string = sw.create_scenepart_obj(path)
         sceneparts += sp_string
-    
-    dyn_t_step = frame_diff / fps
+
+    if len(set(rotations)) > 1 or len(set(locations)) > 1:
+        dyn_t_step = frame_diff / fps
+    else:
+        dyn_t_step = None
     scene = sw.build_scene(scene_id=self.scene_id, name=self.scene_name, sceneparts=[sceneparts], dyn_time_step=dyn_t_step)
     
     # write scene to file
@@ -192,13 +195,13 @@ def np_matmul_coords(coords, matrix, space=None):
 
 class OT_BatchExport_DynHelios(bpy.types.Operator):
     """HELIOS - Export moving scene to HELIOS"""
-    bl_idname = "helios.export"
-    bl_label = "Export OBJ dynamic"
+    bl_idname = "helios.export_dyn"
+    bl_label = "Export OBJ dynamic rigid motions"
     bl_options = {'REGISTER', 'UNDO'}
     
     def execute(self, context):
         scene = context.scene
-        export = scene.ExportProps
+        export = scene.ExportProps_dyn
         
         # export objects (to OBJ files) 
         relative_fpaths = export_obj(export, context)
