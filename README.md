@@ -57,7 +57,7 @@ Create any scene in Blender, which you want to run a simulation on. The scene ca
 
 Now you are ready for exporting the scene. Go to the HELIOS DYNAMIC menu in the "Scene Properties", which looks like this:
 
-![menu](img/menu_dynamic.png)
+![menu](img/menu_dyn.png)
 
 Select your HELIOS++ root folder and the name of your sceneparts subfolder. This name will automatically be appended to `<your-helios-root_dir>/data/sceneparts`. The add-on will export the meshes in your Blender scene to this folder in OBJ format. Furthermore, browse for the XML file to which the dynamic scene shall be written.
 
