@@ -53,10 +53,13 @@ def has_animation(obj):
                 animation = True
             if driver:
                 animation = True
+
     for modifier in modifiers:
         if modifier.type == "DISPLACE":
-            print(modifier.texture_coords_object)
             if modifier.texture_coords_object.animation_data:
+                animation = True
+        elif modifier.type == "ARMATURE":
+            if modifier.object.animation_data:
                 animation = True
     return animation
 
