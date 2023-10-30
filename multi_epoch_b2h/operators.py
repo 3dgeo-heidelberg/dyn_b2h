@@ -36,6 +36,11 @@ def has_animation(obj):
     keyable_list.append(obj)
     keyable_list.append(obj.data)
 
+    # may also be present in texture coords object of a displacement modifier
+    modifiers = []
+    for modifier in obj.modifiers:
+        modifiers.append(modifier)
+
     animation = False
     # Print data paths of available animation/driver f-curves.
     for keyable in keyable_list:
@@ -48,7 +53,11 @@ def has_animation(obj):
                 animation = True
             if driver:
                 animation = True
-
+    for modifier in modifiers:
+        if modifier.type == "DISPLACE":
+            print(modifier.texture_coords_object)
+            if modifier.texture_coords_object.animation_data:
+                animation = True
     return animation
 
 
@@ -158,7 +167,14 @@ class OT_BatchExport_MultiEpochHelios(bpy.types.Operator):
 
         static_fpaths = export_obj_static(export, context)
 
-        for frame in range(scene.frame_start, scene.frame_end + export.frame_step, export.frame_step):
+        try:
+            frame_list = [int(frame) for frame in export.frame_list.split(",")]
+        except:
+            frame_list = []
+        if len(frame_list) == 0:
+            frame_list = list(range(scene.frame_start, scene.frame_end + export.frame_step, export.frame_step))
+
+        for frame in frame_list:
             # export objects (to OBJ files) 
             dynamic_fpaths = export_obj_dyn(export, context, frame)
             
