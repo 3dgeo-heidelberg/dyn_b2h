@@ -7,6 +7,7 @@ class ExportProps_me(bpy.types.PropertyGroup, ExportHelper):
     helios_root: bpy.props.StringProperty(name="Path to HELIOS++ root_folder", default="helios", subtype="DIR_PATH")
     sceneparts_folder: bpy.props.StringProperty(name="Name of sceneparts folder", default="")
     frame_step: bpy.props.IntProperty(name="Frame step", default=20)
+    frame_list: bpy.props.StringProperty(name="List of frames", default="")
     # export_sceneparts: bpy.props.BoolProperty(name="Export scene parts?", default=True)
     scene_id: bpy.props.StringProperty(name="ID of the scene", default="scene")
     scene_name: bpy.props.StringProperty(name="Name of the scene", default="Scene")
@@ -35,10 +36,15 @@ class SCENE_PT_helios_me(bpy.types.Panel):
         row = layout.row()
         row.label(text="Scene XML")
         row.prop(props, "filepath", text="")
-        
-        row = layout.row()
-        row.label(text="Frame step")
-        row.prop(props, "frame_step", text="")
+
+        split = layout.split()
+        col = split.column()
+        col.label(text="Frame step")
+        col.prop(props, "frame_step", text="")
+
+        col = split.column(align=True)
+        col.label(text="List of frames (comma separated)")
+        col.prop(props, "frame_list", text="")
 
         # export sceneparts option removed, sceneparts always exported
         # row = layout.row()
