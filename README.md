@@ -82,11 +82,11 @@ Now you are ready for exporting the scene. Go to the HELIOS MULTI-EPOCH menu in 
 
 Select your HELIOS++ root folder and the name of your sceneparts subfolder. This name will automatically be appended to `<your-helios-root_dir>/data/sceneparts`. The add-on will export the meshes in your Blender scene to this folder in OBJ format. Furthermore, browse for the XML file to which the dynamic scene shall be written. The current frame number will be appended to this XML as suffix, i.e., *data/scenes/my_scene/scene_001*, *data/scenes/my_scene/scene_021*, *data/scenes/my_scene/scene_041*, etc.
 
-Select a frame step, which determines the interval, at which to export frames.
+Select a frame step that defines the interval at which frames are exported, or specify a list of frames. The list of frames should be a comma-separated string, e.g., `9, 15, 34, 90, 92, 105`. If a list of frames is provided, the frame step will be ignored. 
 
 Lastly, define an ID and name for your scene, which will be written into the scene XML file.
 
-When you are ready, hit "Export" and wait for the export to complete.
+When you are ready, click "Export" and wait for the export to complete.
 
 You can now use the generated scene XMLs to run HELIOS++ simulations. Create a separate [survey XML](https://github.com/3dgeo-heidelberg/helios/wiki/Survey) for each epoch to create a time series of simulated laser scanning survey over the dynamic scenes. Execute the surveys with HELIOS++.
 
