@@ -74,13 +74,13 @@ You can now use the generated scene XML to run a HELIOS++ simulation. Simply cre
 
 ### multi_epoch_b2h
 
-Create any scene in Blender, which you want to run a simulation on. The scene can include animations, inserted using keyframes or using modifiers like wind or deformation. Before exporting a dynamic scene, make sure to select a suitable end frame in your Animation Timeline which covers your animation well. The exported frames will be determined on the frame step you provide and the end frame configured in your Animation Timeline.
+Create any scene in Blender, which you want to run a simulation on. The scene can include animations, inserted using keyframes or using modifiers like wind or deformation. Before exporting a dynamic scene, make sure to select a suitable end frame in your Animation Timeline which covers your animation well. If not providing a list of specific frames, the exported frames will be determined based on the frame step you provide and the end frame configured in your Animation Timeline. Objects without animations are just exported to file once and re-used in the separate HELIOS++ scenes. Objects with animations are re-exported at each frame. 
 
 Now you are ready for exporting the scene. Go to the HELIOS MULTI-EPOCH menu in the "Scene Properties", which looks like this:
 
 ![menu](img/menu_multi_epoch.png)
 
-Select your HELIOS++ root folder and the name of your sceneparts subfolder. This name will automatically be appended to `<your-helios-root_dir>/data/sceneparts`. The add-on will export the meshes in your Blender scene to this folder in OBJ format. Furthermore, browse for the XML file to which the dynamic scene shall be written. The current frame number will be appended to this XML as suffix, i.e., *data/scenes/my_scene/scene_001*, *data/scenes/my_scene/scene_021*, *data/scenes/my_scene/scene_041*, etc.
+Select your HELIOS++ root folder and the name of your sceneparts subfolder. This name will automatically be appended to `<your-helios-root_dir>/data/sceneparts`. The add-on will export the meshes in your Blender scene to this folder in OBJ format. Furthermore, browse for the XML file to which the dynamic scene shall be written. The current frame number will be appended to this XML as suffix, i.e., *data/scenes/my_scene/scene_001.xml*, *data/scenes/my_scene/scene_021.xml*, *data/scenes/my_scene/scene_041.xml*, etc.
 
 Select a frame step that defines the interval at which frames are exported, or specify a list of frames. The list of frames should be a comma-separated string, e.g., `9,15,34,90,92,105`. If a list of frames is provided, the frame step will be ignored. 
 
