@@ -5,10 +5,13 @@ from bpy_extras.io_utils import ImportHelper, ExportHelper
 class ExportProps_me(bpy.types.PropertyGroup, ExportHelper):
     
     helios_root: bpy.props.StringProperty(name="Path to HELIOS++ root_folder", default="helios", subtype="DIR_PATH")
-    sceneparts_folder: bpy.props.StringProperty(name="Name of sceneparts folder", default="")
+    sceneparts_folder: bpy.props.StringProperty(name="Path of scene parts folder", default="", subtype="DIR_PATH")
+    sceneparts_fname: bpy.props.StringProperty(name="Name of scene parts to write as OBJ (suffix for frame will be appended)", default="")
+    scene_folder: bpy.props.StringProperty(name="Path to the scene folder to create and write scenes into", default="", subtype="DIR_PATH")
+    scene_fname: bpy.props.StringProperty(name="Name of scene file (suffix for frame will be appended)", default="")
     frame_step: bpy.props.IntProperty(name="Frame step", default=20)
     frame_list: bpy.props.StringProperty(name="List of frames", default="")
-    # export_sceneparts: bpy.props.BoolProperty(name="Export scene parts?", default=True)
+    only_active: bpy.props.BoolProperty(name="Export only active objects?", default=True)
     scene_id: bpy.props.StringProperty(name="ID of the scene", default="scene")
     scene_name: bpy.props.StringProperty(name="Name of the scene", default="Scene")
 
@@ -30,11 +33,23 @@ class SCENE_PT_helios_me(bpy.types.Panel):
         row.prop(props, "helios_root", text="")
         
         row = layout.row()
-        row.label(text="Sceneparts folder")
+        row.label(text="Scene parts folder")
         row.prop(props, "sceneparts_folder", text="")
+
+        row = layout.row()
+        row.label(text="Scene parts file name")
+        row.prop(props, "sceneparts_fname", text="")
         
         row = layout.row()
-        row.label(text="Scene XML")
+        row.label(text="Scene XML folder")
+        row.prop(props, "scene_folder", text="")
+
+        row = layout.row()
+        row.label(text="Scene filename")
+        row.prop(props, "scene_fname", text="")
+
+        row = layout.row()
+        row.label(text="Static scene part")
         row.prop(props, "filepath", text="")
 
         split = layout.split()
@@ -46,9 +61,8 @@ class SCENE_PT_helios_me(bpy.types.Panel):
         col.label(text="List of frames (comma separated)")
         col.prop(props, "frame_list", text="")
 
-        # export sceneparts option removed, sceneparts always exported
-        # row = layout.row()
-        # row.prop(props, "export_sceneparts")
+        row = layout.row()
+        row.prop(props, "only_active")
         
         split = layout.split()
         col = split.column()
@@ -81,7 +95,7 @@ def unregister():
     bpy.utils.unregister_class(ExportProps_me)
     bpy.utils.unregister_class(SCENE_PT_helios_me)
     # $ delete ExportProps on unregister
-    del(bpy.types.Scene.ExportProps_me)
+    del bpy.types.Scene.ExportProps_me
 
 
 if __name__ == "__main__":
