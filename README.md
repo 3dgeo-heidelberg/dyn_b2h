@@ -96,7 +96,7 @@ You can now use the generated scene XMLs to run HELIOS++ simulations. Create a s
 
 Create any scene in Blender, which you want to run a simulation on. The scene can include animations, inserted using keyframes or using modifiers like wind or deformation. Before exporting a dynamic scene, make sure to select a suitable end frame in your Animation Timeline which covers your animation well. If not providing a list of specific frames, the exported frames will be determined based on the frame step you provide and the end frame configured in your Animation Timeline. Objects without animations are just exported to file once, objects with animations are re-exported at each frame. 
 
-Now you are ready for exporting the scene. Fo to the HELIOS SWAP SCENE menu in the "Scene Properties", which looks like this:
+Now you are ready for exporting the scene. Go to the HELIOS SWAP SCENE menu in the "Scene Properties", which looks like this:
 
 ![menu](img/menu_swap.png)
 
