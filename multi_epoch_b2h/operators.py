@@ -19,14 +19,6 @@ def add_material(outfile, matfile, matname):
         f.writelines(data)
 
 
-# def has_animation(ob):
-#     anim = ob.animation_data
-#     if anim is None and anim.action is not None:
-#         return True
-#     else:
-#         return False
-
-
 def has_animation(obj):
     # Collect places where animation/driver data possibly present.
     keyable_list = [getattr(obj.data, 'shape_keys', None)]
@@ -61,12 +53,24 @@ def has_animation(obj):
         elif modifier.type == "ARMATURE":
             if modifier.object.animation_data:
                 animation = True
+    
     return animation
+
+
+def has_active_physics(obj):
+    if obj.rigid_body:
+        if obj.rigid_body.enabled is True and obj.rigid_body.type == 'ACTIVE':
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 def export_obj_dyn(self, context, frame):
     # move to desired frame rate
     bpy.context.scene.frame_set(frame)
+    last_frame = bpy.context.scene.frame_end
     
     # Deselect all objects
     for obj in bpy.context.selected_objects:
@@ -82,8 +86,9 @@ def export_obj_dyn(self, context, frame):
     for ob in objects:
         objects.active = ob
         ob.select_set(True)
+        print(ob.name)
         i = 1
-        if ob.type == 'MESH' and has_animation(ob):
+        if ob.type == 'MESH' and (has_animation(ob) or has_active_physics(ob)):
             ob_name = ob.name
             print(ob_name)
             if ob_name in filepaths_relative:
@@ -92,10 +97,17 @@ def export_obj_dyn(self, context, frame):
             outfile = str(sceneparts_path / (ob_name + f'_{frame:03d}.obj'))
             
             filepaths_relative.append(Path(outfile).relative_to(self.helios_root))
+            if has_active_physics(ob):
+                area = [a for a in bpy.context.screen.areas if a.type=="VIEW_3D"][0]
+                with bpy.context.temp_override(area=area):
+                    # bake rigid body simulation to keyframes so object locations are properly exported
+                    bpy.ops.rigidbody.bake_to_keyframes(frame_start=1, frame_end=last_frame)
             # condition is uncommented, because we expect that people usually want to export sceneparts
             # if self.export_sceneparts is True:
             bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y', use_materials=False)
+            
 
+            
         ob.select_set(False)
     
     return filepaths_relative
