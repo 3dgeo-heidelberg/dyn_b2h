@@ -72,7 +72,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
             obj_paths_dynamic.append(obj_paths_relative[i])
             sceneparts += "\n        <!--Dynamic scenepart-->"
             dynm_string = ""
-            leaf_id = str(obj_paths_relative[i]).split("\\")[-1].replace(".obj", "")
+            obj_id = str(obj_paths_relative[i]).split("\\")[-1].replace(".obj", "")
             path = str(obj_paths_relative[i])
             # make sure we are at frame 0
             prev_frame = 0
@@ -113,25 +113,25 @@ def write_dyn_scene(self, context, obj_paths_relative):
                 prev_rot = rot.to_quaternion()
                 prev_loc = loc
                 if next_id:
-                    next = f"{leaf_id}_{next_id}"
+                    next = f"{obj_id}_{next_id}"
                 else:
                     next = False
                 # add to dynamic motion string
-                dynm_string += sw.add_motion_rot_tran(id = f"{leaf_id}_{j}", axis=axis, angle=angle, x=new_t[0], y=new_t[1], z=new_t[2], rotation_center=rot_centre, nloops=1, next=next)
+                dynm_string += sw.add_motion_rot_tran(id = f"{obj_id}_{j}", axis=axis, angle=angle, x=new_t[0], y=new_t[1], z=new_t[2], rotation_center=rot_centre, nloops=1, next=next)
                 j+= 1
                 # Did we arrive at the end of the animation?
                 if j == len(frames):
                     # determine whether to stop here or continue with first one (i.e., restart loop)
                     if self.loop_animations:
                         next_id = 1
-                        next = f"{leaf_id}_{next_id}"
+                        next = f"{obj_id}_{next_id}"
                         new_t = initial_loc - loc
                         new_rot = initial_rot @ q_rot.inverted()
                         rot_centre = prev_loc
                         axis, angle = new_rot.to_axis_angle()
                         axis = axis[:]
                         angle = np.rad2deg(angle)
-                        dynm_string += sw.add_motion_rot_tran(id = f"{leaf_id}_{j}", axis=axis, angle=angle, x=new_t[0], y=new_t[1], z=new_t[2], rotation_center=rot_centre, nloops=1, next=next)
+                        dynm_string += sw.add_motion_rot_tran(id = f"{obj_id}_{j}", axis=axis, angle=angle, x=new_t[0], y=new_t[1], z=new_t[2], rotation_center=rot_centre, nloops=1, next=next)
             sp_string = sw.create_scenepart_obj(path, motionfilter=dynm_string)
             sceneparts += sp_string     
                     
