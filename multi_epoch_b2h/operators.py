@@ -34,7 +34,6 @@ def has_animation(obj):
         modifiers.append(modifier)
 
     animation = False
-    # Print data paths of available animation/driver f-curves.
     for keyable in keyable_list:
         if not keyable or not keyable.animation_data:
             continue
@@ -67,6 +66,37 @@ def has_active_physics(obj):
         return False
 
 
+def curve_to_mesh(self, context, frame):
+    # move to desired frame rate
+    bpy.context.scene.frame_set(frame)
+    last_frame = bpy.context.scene.frame_end
+
+    # Deselect all objects
+    for obj in bpy.context.selected_objects:
+        obj.select_set(False) 
+    
+    converted = []
+    # Iterate over all objects and export them
+    objects = bpy.context.view_layer.objects
+
+    for ob in objects:
+        if ob.type == 'CURVE':
+            objects.active = ob
+            ob.select_set(True)
+            bpy.ops.object.convert(target='MESH', keep_original=True)
+            converted.append(ob.name)
+            ob.select_set(False)
+    
+    # get last object (= new obj) and rename it
+    new_obj = bpy.context.view_layer.objects[-1]
+    new_name = new_obj.name.split('.')[0] + f'_{frame:03d}'
+    new_obj.name = new_name
+    new_obj.data.name = new_name
+    converted.append(new_name)
+    
+    return converted
+
+
 def export_obj_dyn(self, context, frame):
     # move to desired frame rate
     bpy.context.scene.frame_set(frame)
@@ -75,6 +105,7 @@ def export_obj_dyn(self, context, frame):
     # Deselect all objects
     for obj in bpy.context.selected_objects:
         obj.select_set(False) 
+    
 
     sceneparts_path = Path(self.helios_root) / (f'data/sceneparts/{self.sceneparts_folder}')
     sceneparts_path.mkdir(parents=True, exist_ok=True)
@@ -82,11 +113,10 @@ def export_obj_dyn(self, context, frame):
     filepaths_relative = []
     # Iterate over all objects and export them
     objects = bpy.context.view_layer.objects
-    print([obj.name for obj in objects])
+
     for ob in objects:
         objects.active = ob
         ob.select_set(True)
-        print(ob.name)
         i = 1
         if ob.type == 'MESH' and (has_animation(ob) or has_active_physics(ob)):
             ob_name = ob.name
@@ -102,18 +132,17 @@ def export_obj_dyn(self, context, frame):
                 with bpy.context.temp_override(area=area):
                     # bake rigid body simulation to keyframes so object locations are properly exported
                     bpy.ops.rigidbody.bake_to_keyframes(frame_start=1, frame_end=last_frame)
+        
             # condition is uncommented, because we expect that people usually want to export sceneparts
             # if self.export_sceneparts is True:
-            bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y', use_materials=False)
-            
-
+            bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y', use_materials=self.write_materials)
             
         ob.select_set(False)
     
     return filepaths_relative
 
 
-def export_obj_static(self, context, frame=0):
+def export_obj_static(self, context, exclude_objects=[], frame=0):
     # move to desired frame rate
     bpy.context.scene.frame_set(frame)
 
@@ -127,23 +156,25 @@ def export_obj_static(self, context, frame=0):
     filepaths_relative = []
     # Iterate over all objects and export them
     objects = bpy.context.view_layer.objects
-    print([obj.name for obj in objects])
     for ob in objects:
         objects.active = ob
         ob.select_set(True)
 
         i = 1
-        if ob.type == 'MESH' and has_animation(ob) is False:
-            print(ob)
+        if ob.type == 'MESH' and has_animation(ob) is False and ob.name not in exclude_objects:
             ob_name = ob.name
+            ob_basename, ob_frame = ob_name.split('_')
             if ob_name in filepaths_relative:
                 ob_name = ob_name + f'{i:03d}'
                 i += 1
+            if not int(ob_frame) == frame:
+                ob.select_set(False)
+                continue
             outfile = str(sceneparts_path / (ob_name + '.obj'))
 
             filepaths_relative.append(Path(outfile).relative_to(self.helios_root))
             bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y',
-                                     use_materials=False)
+                                     use_materials=self.write_materials)
         ob.select_set(False)
 
     return filepaths_relative
@@ -179,9 +210,15 @@ class OT_BatchExport_MultiEpochHelios(bpy.types.Operator):
     def execute(self, context):
         scene = context.scene
         export = scene.ExportProps_me
+        # fix sceneparts path if necessary
+        sceneparts_dir = Path(export.helios_root) / "data/sceneparts"
+        if Path(export.sceneparts_folder).is_relative_to(sceneparts_dir):
+            export.sceneparts_folder = (Path(export.sceneparts_folder).relative_to(sceneparts_dir)).as_posix()
 
+        # export static sceneparts and get their paths
         static_fpaths = export_obj_static(export, context)
 
+        # get frames to export
         try:
             frame_list = [int(frame) for frame in export.frame_list.split(",")]
         except:
@@ -189,11 +226,17 @@ class OT_BatchExport_MultiEpochHelios(bpy.types.Operator):
         if len(frame_list) == 0:
             frame_list = list(range(scene.frame_start, scene.frame_end + export.frame_step, export.frame_step))
 
+        # iterate over frrames and export objects
         for frame in frame_list:
-            # export objects (to OBJ files) 
+            # convert animated curves to mesh
+            converted_objects = curve_to_mesh(export, context, frame)
+            # export converted meshes (for that frame)
+            converted_static_fpaths = export_obj_static(export, context, exclude_objects=static_fpaths, frame=frame)
+            # export dynamic meshes (at the state of the current frame)
             dynamic_fpaths = export_obj_dyn(export, context, frame)
+            dynamic_fpaths += converted_static_fpaths
             
-            # write the static scene XMLs
+            # write the static scene XMLs (as seen at the current frame)
             write_static_scene(export, context, static_fpaths, dynamic_fpaths, frame)
             
         return {'FINISHED'}
