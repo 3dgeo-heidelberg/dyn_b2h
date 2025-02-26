@@ -9,6 +9,7 @@ from bpy_extras.io_utils import ImportHelper, ExportHelper
 from multi_epoch_b2h import scene_writer as sw
 import shutil
 
+major, minor = bpy.app.version[:2]
 
 def add_material(outfile, matfile, matname):
     with open(outfile, 'r+') as f:
@@ -52,6 +53,11 @@ def has_animation(obj):
         elif modifier.type == "ARMATURE":
             if modifier.object.animation_data:
                 animation = True
+    
+    # check for modifier with animation data
+    for node_group in bpy.data.node_groups:
+        if node_group.animation_data:
+            animation = True
     
     return animation
 
@@ -115,6 +121,10 @@ def export_obj_dyn(self, context, frame):
     objects = bpy.context.view_layer.objects
 
     for ob in objects:
+        # skip if object is not visible in viewport
+        if not ob.visible_get():
+            continue
+
         objects.active = ob
         ob.select_set(True)
         i = 1
@@ -126,7 +136,7 @@ def export_obj_dyn(self, context, frame):
                 i += 1
             outfile = str(sceneparts_path / (ob_name + f'_{frame:03d}.obj'))
             
-            filepaths_relative.append(Path(outfile).relative_to(self.helios_root))
+            filepaths_relative.append(Path(outfile).relative_to(self.helios_root).as_posix())
             if has_active_physics(ob):
                 area = [a for a in bpy.context.screen.areas if a.type=="VIEW_3D"][0]
                 with bpy.context.temp_override(area=area):
@@ -135,7 +145,14 @@ def export_obj_dyn(self, context, frame):
         
             # condition is uncommented, because we expect that people usually want to export sceneparts
             # if self.export_sceneparts is True:
-            bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y', use_materials=self.write_materials)
+
+            if major == 3:
+                bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y',
+                                     use_materials=self.write_materials)
+            elif major == 4:
+                # comment: In Blender 4, the OBJ exporter has a direkt "export_animation" parameter - to be tested, maybe rewrite add-on accordingly..
+                bpy.ops.wm.obj_export(filepath=outfile, export_selected_objects=True, export_materials=self.write_materials,
+                                      up_axis='Z', forward_axis='Y')
             
         ob.select_set(False)
     
@@ -158,11 +175,15 @@ def export_obj_static(self, context, exclude_objects=[], frame=0):
     objects = bpy.context.view_layer.objects
     for ob in objects:
         objects.active = ob
+        # skip if object is not visible in viewport
+        if not ob.visible_get():
+            continue
         ob.select_set(True)
 
         i = 1
         if ob.type == 'MESH' and has_animation(ob) is False and ob.name not in exclude_objects:
             ob_name = ob.name
+            print(ob_name)
             ob_basename, ob_frame = ob_name.split('_')
             if ob_name in filepaths_relative:
                 ob_name = ob_name + f'{i:03d}'
@@ -172,9 +193,14 @@ def export_obj_static(self, context, exclude_objects=[], frame=0):
                 continue
             outfile = str(sceneparts_path / (ob_name + '.obj'))
 
-            filepaths_relative.append(Path(outfile).relative_to(self.helios_root))
-            bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y',
+            filepaths_relative.append(Path(outfile).relative_to(self.helios_root).as_posix())
+            if major == 3:
+                bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y',
                                      use_materials=self.write_materials)
+            elif major == 4:
+                # comment: In Blender 4, the OBJ exporter has a direkt "export_animation" parameter - to be tested, maybe rewrite add-on accordingly..
+                bpy.ops.wm.obj_export(filepath=outfile, export_selected_objects=True, export_materials=self.write_materials,
+                                      up_axis='Z', forward_axis='Y')
         ob.select_set(False)
 
     return filepaths_relative
