@@ -9,6 +9,7 @@ class ExportProps_me(bpy.types.PropertyGroup, ExportHelper):
     frame_step: bpy.props.IntProperty(name="Frame step", default=20)
     frame_list: bpy.props.StringProperty(name="List of frames", default="")
     # export_sceneparts: bpy.props.BoolProperty(name="Export scene parts?", default=True)
+    write_materials: bpy.props.BoolProperty(name="Write materials?", default=False)
     scene_id: bpy.props.StringProperty(name="ID of the scene", default="scene")
     scene_name: bpy.props.StringProperty(name="Name of the scene", default="Scene")
 
@@ -36,6 +37,9 @@ class SCENE_PT_helios_me(bpy.types.Panel):
         row = layout.row()
         row.label(text="Scene XML")
         row.prop(props, "filepath", text="")
+
+        row = layout.row()
+        row.prop(props, "write_materials")
 
         split = layout.split()
         col = split.column()
