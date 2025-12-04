@@ -31,7 +31,7 @@ def export_obj(self, context):
         if ob.type == 'MESH':
             outfile = str(sceneparts_path / (ob.name + '.obj'))
             
-            filepaths_relative.append(Path(outfile).relative_to(self.helios_root))
+            filepaths_relative.append(Path(outfile).relative_to(self.helios_root).as_posix())
             if self.export_sceneparts is True:
                 bpy.ops.export_scene.obj(filepath=outfile, use_selection=True, axis_up='Z', axis_forward='Y', use_materials=False)
 
@@ -63,8 +63,25 @@ def write_dyn_scene(self, context, obj_paths_relative):
                     frames.append(int(fr))
                     rotations.append(ob.rotation_euler.copy().freeze())
                     locations.append(ob.location.copy().freeze())
-                break
+            if ob.parent is not None:
+                parent = ob.parent
+                # apply parent transforms to child object keyframes
+                for idx in range(len(locations)):
+                    bpy.context.scene.frame_set(frames[idx])
+                    # get parent matrix at this frame
+                    parent_matrix = parent.matrix_world.copy().freeze()
+                    # apply to location
+                    loc_np = np.array(locations[idx])
+                    loc_np_transformed = np_matmul_coords(loc_np.reshape(1,3), parent_matrix)
+                    locations[idx] = Vector(loc_np_transformed.flatten()).freeze()
+                    # apply to rotation
+                    rot_euler = rotations[idx]
+                    rot_matrix = rot_euler.to_matrix().to_4x4()
+                    rot_matrix_transformed = parent_matrix @ rot_matrix
+                    rot_euler_transformed = rot_matrix_transformed.to_euler().freeze()
+                    rotations[idx] = rot_euler_transformed
         except AttributeError:
+            print(f"Object {ob.name} does not have an animation.")
             # ignore attribute error - happens on objects without animation data, e.g., the tree stem
             pass
         # check if moving object (i.e., rotations are different between keyframes)
@@ -72,7 +89,7 @@ def write_dyn_scene(self, context, obj_paths_relative):
             obj_paths_dynamic.append(obj_paths_relative[i])
             sceneparts += "\n        <!--Dynamic scenepart-->"
             dynm_string = ""
-            obj_id = str(obj_paths_relative[i]).split("\\")[-1].replace(".obj", "")
+            obj_id = Path(obj_paths_relative[i]).stem
             path = str(obj_paths_relative[i])
             # make sure we are at frame 0
             prev_frame = 0
